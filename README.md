@@ -2,6 +2,8 @@
 
 use `keyboard` simulation ``mouse``, like mouse **Move**, **Left Click**, **Right Click**, **Scroll**...
 
+![image](http://github.com/jieYM/key2mouse/raw/master/data/images/GIF.gif)
+
 ## instll
 
 **Windows**

@@ -47,3 +47,11 @@ didn't support
 
 ​	`h` mouse wheel up
 
+​ `q` mouse into quick mode, mouse move quickly
+
+​ `a` mouse move slow, 2pix each
+
+​ `s` mouse move slow, 4pix each
+
+​ `d` mouse move slow, 6pix each
+

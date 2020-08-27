@@ -7,7 +7,8 @@
 
 **Windows**
 
-- 下载 key2mouse.exe
+- 下载 Key2Mouse.zip
+- 解压 Key2Mouse.zip
 - 直接运行 key2mouse.exe
 
 **Mac**

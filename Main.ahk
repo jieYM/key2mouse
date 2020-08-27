@@ -5,6 +5,56 @@ IN_TAB := false
 DIRE := "i,j,k,l"
 
 
+^!l::SwitchMouseKeyboardModel()
+
+
+#If IN_TAB
+		i::
+		j::
+		k::
+		l::
+		q::
+		s::
+		d::
+		a::
+		Goto, MouseMoveByKey
+	Return
+
+	u::ClickLeftMouse()
+	
+	y::PressMouse()
+	
+	^u::PressMouseAndCtrl()
+
+	p:: ClickRightMouse()
+
+	h:: MouseWheelUp()
+
+	`;:: MouseWheelDown()
+	
+	m::ScrollRight()
+
+	n::ScrollLeft()
+
+	b::
+	c::
+	e::
+	f::
+	o::
+	r::
+	t::
+	v::
+	w::
+	x::
+	z::
+	Return
+	
+	Esc::SwitchMouseKeyboardModel()
+	
+#If
+
+
+
 MouseMoveByKey:
 
 	global IN_LOOP
@@ -49,7 +99,7 @@ MouseMoveByKey:
 				DEFAULT_SPEED := 6
 			}
 		
-			; 获取当前按压的是哪个方向键
+			; which direction key pressing
 			Loop,Parse, DIRE, 
 			{
 				if GetKeyState(A_LoopField, "P")
@@ -57,13 +107,14 @@ MouseMoveByKey:
 			}
 			
 		
-			; 在快速模式下，按住不放，速度提升
+			; in QUICK_MODE speed overlay every time
+			; normally, key press repeatedly mean far away, need quickly
 			If cur_k In %DIRE% 
 			{
 				If ( QUICK_MODE)
 					speed := speed + 9
 			}
-			Else ;否则速度恢复为默认
+			Else ; or switch to default
 			{
 				speed := DEFAULT_SPEED
 			}
@@ -122,8 +173,8 @@ SwitchMouseKeyboardModel()
 
 ClickLeftMouse(){
 	MouseClick, Left
-	; 一般情况下，点击都是一次鼠标移动的结束标记，
-	; 所以点击后切换到快速模式，为下一次鼠标移动做准备，增加友好性
+	; normally, click is the sign of the end of one time mouse move
+	; thus, Switch2Quick mode, prepare for next move,
 	Switch2Quick()
 }
 
@@ -164,8 +215,7 @@ ScrollLeft()
 
 ScrollRight(){
 	ControlGetFocus, mw_control, A
-	;点右键后如果左右移动鼠标则移动水平控制条
-	SendMessage, 0x114, 1, 0, %mw_control%, A ;0x115 垂直
+	SendMessage, 0x114, 1, 0, %mw_control%, A ;0x115 vertical
 }
 
 SetSystemCursor(){
@@ -223,53 +273,6 @@ RestoreSystemCursor(){
     
 }
 
-#If IN_TAB
-		i::
-		j::
-		k::
-		l::
-		q::
-		s::
-		d::
-		a::
-		Goto, MouseMoveByKey
-	Return
 
-	u::ClickLeftMouse()
-	
-	y::PressMouse()
-	
-	^u::PressMouseAndCtrl()
-
-	p:: ClickRightMouse()
-
-	h:: MouseWheelUp()
-
-	`;:: MouseWheelDown()
-	
-	m::ScrollRight()
-
-	n::ScrollLeft()
-
-	b::
-	c::
-	e::
-	f::
-	o::
-	r::
-	t::
-	v::
-	w::
-	x::
-	z::
-	Return
-	
-	Esc::SwitchMouseKeyboardModel()
-	
-#If
-
-
-
-^!l::SwitchMouseKeyboardModel()
 
 #0::ExitApp

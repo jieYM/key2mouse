@@ -8,7 +8,8 @@ use `keyboard` simulation ``mouse``, like mouse **Move**, **Left Click**, **Righ
 
 **Windows**
 
-- download key2mouse.exe
+- download Key2Mouse.zip
+- unzip Key2Mouse.zip
 - run key2mouse.exe
 
 **Mac**

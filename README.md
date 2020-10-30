@@ -24,7 +24,12 @@ didn't support
 didn't support
 ```
 
-
+## featurs
+- simulate mouse move
+-  simulate mouse click(left and right and left hold)
+-  simulate mouse scroll
+-  window move
+-  change window size
 
 ## use
 
@@ -50,11 +55,14 @@ didn't support
 
 ​	`h` mouse wheel up
 
-​ `q` mouse into quick mode, mouse move quickly
+ `q` mouse into quick mode, mouse move quickly
 
-​ `a` mouse move slow, 2pix each
+ `a` mouse move slow, 2pix each
 
-​ `s` mouse move slow, 4pix each
+ `s` mouse move slow, 4pix each
 
-​ `d` mouse move slow, 6pix each
+ `d` mouse move slow, 6pix each
 
+....  
+
+> check and edit more in `Conf.ini`

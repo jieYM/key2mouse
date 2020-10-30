@@ -1,70 +1,138 @@
-﻿IN_LOOP := false
-DEFAULT_SPEED := 2
+﻿INI_PATH=%A_ScriptDir%\Conf.ini
+
+Menu,Tray,Icon,images\mouse.png
+
+IN_LOOP := false
 QUICK_MODE := true
-IN_TAB := false
-DIRE := "i,j,k,l"
+MOUSE_KEYBOARD_MODEL := false
+CLICK_KEY := ""
 
 
-^!l::SwitchMouseKeyboardModel()
+; start hot key config
+iniread,TurnOn,%INI_PATH%,Start,SwitchOnOff
+Hotkey,%TurnOn%,SwitchMouseKeyboardModel
 
 
-#If IN_TAB
-		i::
-		j::
-		k::
-		l::
-		q::
-		s::
-		d::
-		a::
-		Goto, MouseMoveByKey
-	Return
+iniread,ExitApp_,%INI_PATH%,Start,ExitApp
+if ExitApp_
+	Hotkey,%ExitApp_%,ExitApp__
 
-	u::ClickLeftMouse()
+
+; moves key config,
+iniread,DIRE_UP,%INI_PATH%,MouseMove,DIRE_UP
+iniread,DIRE_DOWN,%INI_PATH%,MouseMove,DIRE_DOWN
+iniread,DIRE_LEFT,%INI_PATH%,MouseMove,DIRE_LEFT
+iniread,DIRE_RIGHT,%INI_PATH%,MouseMove,DIRE_RIGHT
+DIRE := DIRE_UP "," DIRE_DOWN  "," DIRE_LEFT  ","  DIRE_RIGHT
+
+iniread,QUICK_MODE_KEY,%INI_PATH%,MouseMove,QUICK_MODE_KEY
+iniread,LEVEL1_KEY,%INI_PATH%,MouseMove,LEVEL1_KEY
+iniread,LEVEL2_KEY,%INI_PATH%,MouseMove,LEVEL2_KEY
+iniread,LEVEL3_KEY,%INI_PATH%,MouseMove,LEVEL3_KEY
+
+iniread,LEVEL1,%INI_PATH%,MouseMove,LEVEL1_SPEED
+iniread,LEVEL2,%INI_PATH%,MouseMove,LEVEL2_SPEED
+iniread,LEVEL3,%INI_PATH%,MouseMove,LEVEL3_SPEED
+
+iniread,DEFAULT_SPEED,%INI_PATH%,MouseMove,DEFAULT_SPEED
+iniread,QUICK_MODE_UP_SPEED,%INI_PATH%,MouseMove,QUICK_MODE_UP_SPEED
+iniread,NORMAL_MODEL_UP_SPEED,%INI_PATH%,MouseMove,NORMAL_MODEL_UP_SPEED
+
+Hotkey, If, MOUSE_KEYBOARD_MODEL
+Hotkey,%DIRE_UP%,MouseMoveByKey 
+Hotkey,%DIRE_DOWN%,MouseMoveByKey
+Hotkey,%DIRE_RIGHT%,MouseMoveByKey
+Hotkey,%DIRE_LEFT%,MouseMoveByKey
+
+if LEVEL1_KEY
+	Hotkey,%LEVEL1_KEY%,MouseMoveByKey
+if LEVEL2_KEY
+	Hotkey,%LEVEL2_KEY%,MouseMoveByKey
+if LEVEL3_KEY
+	Hotkey,%LEVEL3_KEY%,MouseMoveByKey
+if QUICK_MODE_KEY
+	Hotkey,%QUICK_MODE_KEY%,MouseMoveByKey
+
+iniread,TurnOff,%INI_PATH%,Start,TurnOff
+Hotkey,%TurnOff%,TurnOffMouseKeyboardModel
+
+       
+; mouse module event
+iniread,Event,%INI_PATH%,Event
+Loop,parse,Event,`n,`r
+{
+	if (A_LoopField="")
+		continue
 	
-	y::PressMouse()
+	Fname :=RegExReplace(A_LoopField,"=.*?$")
+	Fkey :=RegExReplace(A_LoopField,"^.*?=") 
 	
-	^u::PressMouseAndCtrl()
-
-	p:: ClickRightMouse()
-
-	h:: MouseWheelUp()
-
-	`;:: MouseWheelDown()
+	try
+		Hotkey,%Fkey%,%Fname%
+	catch
+		MsgBox, Error: %A_LoopField%
 	
-	m::ScrollRight()
+	if (Fname == "ClickLeftMouse")
+		CLICK_KEY := Fkey
 
-	n::ScrollLeft()
+	
+}
 
-	b::
-	c::
-	e::
-	f::
-	o::
-	r::
-	t::
-	v::
-	w::
-	x::
-	z::
-	Return
-	
-	Esc::SwitchMouseKeyboardModel()
-	
+
+iniread,UseSpace,%INI_PATH%,Start,UseSpace+
+iniread,UseCapslock,%INI_PATH%,Start,UseCapslock+
+
+#If MOUSE_KEYBOARD_MODEL
+
 #If
 
 
 
-MouseMoveByKey:
+#If (UseSpace == "true")
+	
+	$Space:: 
 
+	Gosub,SpaceModle       
+	return  
+
+#If
+	
+#If (UseCapslock == "true")
+	*Capslock:: 
+		MOUSE_KEYBOARD_MODEL := true
+		
+		CapsLockIn := true
+		KeyWait, Capslock 
+		MOUSE_KEYBOARD_MODEL := false
+		CapsLockIn := false
+
+		If( A_ThisHotkey =="*Capslock")
+			SetCapsLockState, % (State:=!State) ? "On" : "Off" 
+
+	Return 
+#If
+
+SpaceModle:
+      
+		MOUSE_KEYBOARD_MODEL := true   
+		SpaceIn := true
+		KeyWait, Space
+		MOUSE_KEYBOARD_MODEL := false
+		SpceIn := false
+		If( A_ThisHotkey =="$Space")
+			send,{Space}   
+return 
+
+MouseMoveByKey:
 	global IN_LOOP
 	global DEFAULT_SPEED
 	global QUICK_MODE
+	
 
 	speed := DEFAULT_SPEED
 
 	If !IN_LOOP
-	{
+	{	
 
 	    IN_LOOP := true
 		Loop 100
@@ -75,28 +143,44 @@ MouseMoveByKey:
 			
 			cur_k := ""
 			
-			If !IN_TAB
-				break
 			
-			If GetKeyState("q", "P")
+			If !MOUSE_KEYBOARD_MODEL
+			{
+				break
+			}
+			
+			; can't exit this Thread outside
+			; thus, opinion inside
+			if (UseCapslock and CapsLockIn and !GetKeyState("CapsLock", "P"))
+			{
+				break
+			}
+			
+			if (UseSpace and SpaceIn and !GetKeyState("Space", "P"))
+			{
+				break
+			}
+			
+			
+			If (QUICK_MODE_KEY and GetKeyState(QUICK_MODE_KEY, "P")) or (CLICK_KEY and GetKeyState(CLICK_KEY, "P"))
 				QUICK_MODE := true
 
-			If GetKeyState("a","P")
+			Else If (LEVEL1_KEY and GetKeyState(LEVEL1_KEY,"P") )
 			{
 				QUICK_MODE := false
-				DEFAULT_SPEED := 2
+				DEFAULT_SPEED := LEVEL1
 			}
 			
-			If GetKeyState("s","P")
+			Else If (LEVEL2_KEY and GetKeyState(LEVEL2_KEY,"P"))
 			{
 				QUICK_MODE := false
-				DEFAULT_SPEED := 4
+				DEFAULT_SPEED := LEVEL2
 			}
 			
-			If GetKeyState("d","P")
+			Else If (LEVEL3_KEY and GetKeyState(LEVEL3_KEY,"P"))
 			{
 				QUICK_MODE := false
-				DEFAULT_SPEED := 6
+				DEFAULT_SPEED := LEVEL3
 			}
 		
 			; which direction key pressing
@@ -112,31 +196,33 @@ MouseMoveByKey:
 			If cur_k In %DIRE% 
 			{
 				If ( QUICK_MODE)
-					speed := speed + 9
+					speed := speed + QUICK_MODE_UP_SPEED
+				else
+					speed := speed + NORMAL_MODEL_UP_SPEED
 			}
 			Else ; or switch to default
 			{
 				speed := DEFAULT_SPEED
 			}
 			
-			If (cur_k == "l")
+			If (cur_k == DIRE_RIGHT)
 			{
 			   x_speed := speed
 			}
 
-			else If (cur_k == "j")
+			else If (cur_k == DIRE_LEFT)
 			{
 			
 			   x_speed := -speed
 			}
 
-			else If (cur_k == "k")
+			else If (cur_k == DIRE_DOWN)
 			{
 
 			   y_speed := speed
 			}
 
-			else If (cur_k == "i")
+			else If (cur_k == DIRE_UP)
 			{
 
 			   y_speed := -speed
@@ -153,126 +239,40 @@ MouseMoveByKey:
 Return
 
 
+SwitchMouseKeyboardModel:
+
+
+	global MOUSE_KEYBOARD_MODEL
+	MOUSE_KEYBOARD_MODEL := !MOUSE_KEYBOARD_MODEL
+	
+	If MOUSE_KEYBOARD_MODEL
+		SetSystemCursor()
+	Else	
+		RestoreSystemCursor()
+return 
+
+
+TurnOffMouseKeyboardModel:
+
+	global MOUSE_KEYBOARD_MODEL
+	If MOUSE_KEYBOARD_MODEL
+	{
+		RestoreSystemCursor()
+		MOUSE_KEYBOARD_MODEL := false
+	}
+return 
+
 Switch2Quick()
 {
 	global QUICK_MODE
 	QUICK_MODE := true
 }
 
-SwitchMouseKeyboardModel()
-{
-	global IN_TAB
-	IN_TAB := !IN_TAB
-	
-	If IN_TAB
-		SetSystemCursor()
-	Else	
-		RestoreSystemCursor()
-}
 
 
-ClickLeftMouse(){
-	MouseClick, Left
-	; normally, click is the sign of the end of one time mouse move
-	; thus, Switch2Quick mode, prepare for next move,
-	Switch2Quick()
-}
-
-ClickRightMouse()
-{
-	MouseClick, Right
-}
-
-PressMouse(){
-	GetKeyState, state, LButton
-	If state = D	
-		Click, Up
-	Else
-		Click, Down
-}
-
-PressMouseAndCtrl(){
-	Send, {CtrlDown}
-	MouseClick, Left
-	Send, {CtrlUp}
-}
-
-MouseWheelUp()
-{
-	Send, {WheelUp}
-}
-
-MouseWheelDown()
-{
-	Send, {WheelDown}
-}
-
-ScrollLeft()
-{ 
-	ControlGetFocus, mw_control, A
-	SendMessage, 0x114, 0, 0, %mw_control%, A
-}
-
-ScrollRight(){
-	ControlGetFocus, mw_control, A
-	SendMessage, 0x114, 1, 0, %mw_control%, A ;0x115 vertical
-}
-
-SetSystemCursor(){
-	INI := % A_ScriptDir  "\data\Metro X\Install.inf"
-	path := % A_ScriptDir "\data\Metro X\"
-	
-	;----------Replace Cursor
-	Cursors := {    "pointer"      : 32512
-				,"help"         : 32651
-				,"work"         : 32650
-				,"busy"         : 32514
-				,"text"         : 32513
-				,"unavailiable" : 32648
-				,"vert"         : 32645
-				,"horz"         : 32644
-				,"dgn1"         : 32642
-				,"dgn2"         : 32643
-				,"move"         : 32646
-				,"link"         : 32649
-				,"cross"        : 32515
-				,"hand"         : 32640
-				,"alternate"    : 32516}
-	
-	CusorFiles := {}
-	for i,v in Cursors
-	{
-		iniread,t,%INI%,Strings,%i%
-		CusorFiles[i] := t
-		
-	}
-
-	
-	for i,v in Cursors
-	{
-		;----------Change Cusror Size
-		IMAGE_BITMAP :=0x0
-		IMAGE_CURSOR := 0x2
-		IMAGE_ICON := 0x1
-
-		; fuFlags:
-		LR_COPYFROMRESOURCE := 0x4000
-		fn := CusorFiles[i]
-		fp := path . fn
-		CursorHandle := DllCall( "LoadCursorFromFile", Str,fp)
-		
-		CursorHandle := DllCall( "CopyImage", uint,CursorHandle, uint,IMAGE_CURSOR, int,CURSOR_W, int,CURSOR_H, uint,0 )
-
-	    DllCall( "SetSystemCursor", Uint,CursorHandle, Int,v)
-    }
-}
-
-RestoreSystemCursor(){
-    SPI_SETCURSORS := 0x57
-    DllCall( "SystemParametersInfo", UInt,SPI_SETCURSORS, UInt,0, UInt,0, UInt,0 )
-    
-}
+ExitApp__:
+	ExitApp
+return
 
 
-
-#0::ExitApp
+#Include Functions.ahk

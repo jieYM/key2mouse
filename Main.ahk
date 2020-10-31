@@ -2,7 +2,7 @@
 INI_PATH = %A_ScriptDir%\Conf.ini
 
 Menu,Tray,NoStandard
-Menu,Tray,Icon,images\mouse.png
+Menu,Tray,Icon,images\mouse.ico
 Menu,Tray,add,Config(&C),Menu_Ini
 Menu,Tray,add
 Menu,Tray,add,Restart(&R),Menu_Reload

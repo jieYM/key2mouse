@@ -1,12 +1,18 @@
-﻿INI_PATH=%A_ScriptDir%\Conf.ini
+﻿
+INI_PATH = %A_ScriptDir%\Conf.ini
 
+Menu,Tray,NoStandard
 Menu,Tray,Icon,images\mouse.png
+Menu,Tray,add,Config(&C),Menu_Ini
+Menu,Tray,add
+Menu,Tray,add,Restart(&R),Menu_Reload
+Menu,Tray,add,Exit(&E),Menu_Exit
+Menu,Tray,Click,1
 
 IN_LOOP := false
 QUICK_MODE := true
 MOUSE_KEYBOARD_MODEL := false
 CLICK_KEY := ""
-
 
 ; start hot key config
 iniread,TurnOn,%INI_PATH%,Start,SwitchOnOff
@@ -269,6 +275,19 @@ Switch2Quick()
 }
 
 
+Menu_Ini(){
+	global INI_PATH
+	Run,%INI_PATH%
+}
+	
+Menu_Reload(){
+	Reload
+}
+	
+	
+Menu_Exit(){
+	ExitApp
+}
 
 ExitApp__:
 	ExitApp

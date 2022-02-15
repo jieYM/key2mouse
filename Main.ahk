@@ -1,4 +1,45 @@
-﻿
+﻿#SingleInstance
+SetDefaultMouseSpeed, 0
+DetectHiddenWindows, On
+customDPI := A_ScreenDPI/96
+hintSize :=  20
+winc_presses := 0
+numberOfRows := 26
+numberOfCols := 26
+rowSpacing := hintSize + ( (A_ScreenHeight - numberOfRows * (hintSize * customDPI) ) / (numberOfRows - 1) ) / customDPI
+colSpacing := hintSize + ( (A_ScreenWidth - numberOfCols * (hintSize * customDPI) ) / (numberOfCols - 1) ) / customDPI
+AscA := 97
+KeyArray := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
+Gui, +AlwaysOnTop +ToolWindow -Caption -DPIScale +HwndGrid +LastFound
+Gui, Margin, 0
+Gui, Color, 779977
+Gui, Font, s13 w70 cFFFF00 bold
+WinSet, Transparent, 140
+
+; Display Coordinates 
+rowCounter := 0
+Loop {
+	rowYCoord := rowCounter * rowSpacing
+	rowYCoordAlpha := KeyArray[rowCounter+1]
+	colCounter := 0
+	Loop {
+		colXCoord := colCounter * colSpacing
+		colXCoordAlpha := KeyArray[colCounter+1]
+		;Gui, Add, Progress, w%hintSize% h%hintSize% x%colXCoord% y%rowYCoord% Backgroundfafafa disabled
+		;gui, add, Pic, w%hintSize% h%hintSize% x%colXCoord% y%rowYCoord% border 0x201 readonly backgroundtrans c212121, %rowYCoordAlpha%%colXCoordAlpha%
+		gui, add, Text, w%hintSize% h%hintSize% x%colXCoord% y%rowYCoord% ,  %rowYCoordAlpha%%colXCoordAlpha%
+ 
+		colCounter := colCounter + 1
+	} Until colCounter = numberOfcols			
+	rowCounter := rowCounter + 1
+} Until rowCounter = numberOfRows
+
+Gui -Caption +AlwaysOnTop +E0x20
+Gui, Show, Hide X0 Y0 W%A_ScreenWidth% H%A_ScreenHeight%, CoordGrid
+
+
+
 INI_PATH = %A_ScriptDir%\Conf.ini
 
 Menu,Tray,NoStandard
@@ -16,8 +57,10 @@ CLICK_KEY := ""
 
 ; start hot key config
 iniread,TurnOn,%INI_PATH%,Start,SwitchOnOff
+iniread,StartWithLocationMode,%INI_PATH%,Start,StartWithLocationMode
 Hotkey,%TurnOn%,SwitchMouseKeyboardModel
 
+STARTED := false 
 
 iniread,ExitApp_,%INI_PATH%,Start,ExitApp
 if ExitApp_
@@ -44,11 +87,14 @@ iniread,DEFAULT_SPEED,%INI_PATH%,MouseMove,DEFAULT_SPEED
 iniread,QUICK_MODE_UP_SPEED,%INI_PATH%,MouseMove,QUICK_MODE_UP_SPEED
 iniread,NORMAL_MODEL_UP_SPEED,%INI_PATH%,MouseMove,NORMAL_MODEL_UP_SPEED
 
+iniread,TO_LOCATION_MODE,%INI_PATH%,MouseMove,TO_LOCATION_MODE
+
 Hotkey, If, MOUSE_KEYBOARD_MODEL
 Hotkey,%DIRE_UP%,MouseMoveByKey 
 Hotkey,%DIRE_DOWN%,MouseMoveByKey
 Hotkey,%DIRE_RIGHT%,MouseMoveByKey
 Hotkey,%DIRE_LEFT%,MouseMoveByKey
+Hotkey,%TO_LOCATION_MODE%,SwitchToLocationMode
 
 if LEVEL1_KEY
 	Hotkey,%LEVEL1_KEY%,MouseMoveByKey
@@ -60,7 +106,7 @@ if QUICK_MODE_KEY
 	Hotkey,%QUICK_MODE_KEY%,MouseMoveByKey
 
 iniread,TurnOff,%INI_PATH%,Start,TurnOff
-Hotkey,%TurnOff%,TurnOffMouseKeyboardModel
+Hotkey,%TurnOff%,TurnOffMouseKeyboardMode
 
        
 ; mouse module event
@@ -83,6 +129,123 @@ Loop,parse,Event,`n,`r
 
 	
 }
+
+
+
+
+#IfWinActive CoordGrid
+
+	
+	/*	
+	CapsLock::
+		WinSet, Transparent, 200, CoordGrid
+		KeyWait, CapsLock  ; Wait for user to physically release it.
+		WinSet, Transparent, 140, CoordGrid
+		return
+	*/
+	
+	esc::
+		Gui, Hide
+		gosub, TurnOnMouseKeyboardMode
+	return 
+
+	left::
+		WinGetPos ,  currentposX, currentposY,,, CoordGrid
+		winmove, CoordGrid,, % currentposX-16
+	return 
+
+	right:: 
+		WinGetPos ,  currentposX, currentposY,,, CoordGrid
+		winmove, CoordGrid,, % currentposX+16
+	return
+
+	Up:: 
+		WinGetPos ,  currentposX, currentposY,,, CoordGrid
+		winmove, CoordGrid,, , % currentposY-16
+	return
+
+	Down:: 
+		WinGetPos ,  currentposX, currentposY,,, CoordGrid
+		winmove, CoordGrid,, , % currentposY+16
+	return
+
+	~a:: gosub, RunKey
+	~b:: gosub, RunKey
+	~c:: gosub, RunKey
+	~d:: gosub, RunKey
+	~e:: gosub, RunKey
+	~f:: gosub, RunKey
+	~g:: gosub, RunKey
+	~h:: gosub, RunKey
+	~i:: gosub, RunKey
+	~j:: gosub, RunKey
+	~k:: gosub, RunKey
+	~l:: gosub, RunKey
+	~m:: gosub, RunKey
+	~n:: gosub, RunKey
+	~o:: gosub, RunKey
+	~p:: gosub, RunKey
+	~q:: gosub, RunKey
+	~r:: gosub, RunKey
+	~s:: gosub, RunKey
+	~t:: gosub, RunKey
+	~u:: gosub, RunKey
+	~v:: gosub, RunKey
+	~w:: gosub, RunKey
+	~x:: gosub, RunKey
+	~y:: gosub, RunKey
+	~z:: gosub, RunKey
+
+	Runkey:
+	      global winc_presses
+	      winc_presses += 1
+	      if winc_presses = 2  
+	      {
+			NavigateToCoord()
+			winc_presses = 0
+			
+		        global QUICK_MODE 
+			global DEFAULT_SPEED 
+			QUICK_MODE := false
+			DEFAULT_SPEED := LEVEL1
+			goSub, TurnOnMouseKeyboardMode 
+         	}
+	Return	
+
+	NavigateToCoord()
+	{
+		CoordMode, Mouse, Window
+		global numberOfRows, numberOfCols, rowSpacing, colSpacing, customDPI
+
+		XCoordInput := SubStr(A_ThisHotkey,2,1)
+		YCoordInput := SubStr(A_PriorHotkey,2,1)
+		XCoordToUse := ConvertInputCoord(XcoordInput, "X")
+		YCoordToUse := ConvertInputCoord(YcoordInput, "Y")
+
+		XCoord := (XCoordToUse+0.26) * colSpacing * customDPI
+		YCoord := (YCoordToUse-0.60) * rowSpacing * customDPI
+
+
+		MouseMove, %XCoord%, %YCoord%, 0
+		Gui Hide
+		;Click
+		Return
+	}
+
+	ConvertInputCoord(coordInput, XorY)
+	{
+		global AscA
+		coordAsc := Asc(coordInput)
+		if (XorY = "X") {
+			coordToUse := coordAsc - AscA
+		}
+		else {
+			coordToUse := coordAsc - AscA + 1
+		}
+		coordToUse := floor(coordToUse) 
+		Return coordToUse
+	}
+#IfWinActive
 
 
 iniread,UseSpace,%INI_PATH%,Start,UseSpace+
@@ -244,27 +407,48 @@ MouseMoveByKey:
 	}
 Return
 
-
-SwitchMouseKeyboardModel:
-
-
-	global MOUSE_KEYBOARD_MODEL
-	MOUSE_KEYBOARD_MODEL := !MOUSE_KEYBOARD_MODEL
-	
-	If MOUSE_KEYBOARD_MODEL
-		SetSystemCursor()
-	Else	
-		RestoreSystemCursor()
+Start:
+	global STARTED
+	STARTED := true
+	if ( StartWithLocationMode == "true") {
+	  Gui, Show
+	} else {
+	  goSub, TurnOnMouseKeyboardMode 
+	}
 return 
 
+Stop:
+	Gui, hide
+        
+	gosub, TurnOffMouseKeyboardMode
+	
+	global STARTED
+	STARTED := false
+return 
 
-TurnOffMouseKeyboardModel:
+; start and stop
+SwitchMouseKeyboardModel:
+	global STARTED
+        if STARTED
+		gosub, Stop
+	else
+		gosub, Start
+return 
+
+TurnOnMouseKeyboardMode:
+	global MOUSE_KEYBOARD_MODEL
+	MOUSE_KEYBOARD_MODEL := true
+	SetSystemCursor()
+return
+
+
+TurnOffMouseKeyboardMode:
 
 	global MOUSE_KEYBOARD_MODEL
 	If MOUSE_KEYBOARD_MODEL
 	{
-		RestoreSystemCursor()
 		MOUSE_KEYBOARD_MODEL := false
+		RestoreSystemCursor()
 	}
 return 
 
@@ -274,6 +458,10 @@ Switch2Quick()
 	QUICK_MODE := true
 }
 
+SwitchToLocationMode:
+	gosub, TurnOffMouseKeyboardMode
+	Gui, Show
+return
 
 Menu_Ini(){
 	global INI_PATH
